@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import { ChatSession } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +14,8 @@ interface ChatSidebarProps {
   onSwitchSession: (id: string) => void;
   onDeleteSession: (id: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function ChatSidebar({
@@ -23,9 +25,11 @@ export default function ChatSidebar({
   onSwitchSession,
   onDeleteSession,
   onUpdateTitle,
+  isOpen,
+  onClose,
 }: ChatSidebarProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editTitle, setEditTitle] = React.useState("");
 
   const startEditing = (session: ChatSession) => {
     setEditingId(session.id);
@@ -43,31 +47,36 @@ export default function ChatSidebar({
   };
 
   return (
-    <div className="w-80 h-screen flex flex-col sidebar-glass rounded-r-lg">
-      <div className="p-4 border-b border-border">
-        <Button
-          onClick={onNewSession}
-          className="w-full gap-2"
-          variant="secondary"
-        >
-          <PlusCircle className="h-4 w-4" />
-          New Chat
-        </Button>
-      </div>
-      
+    <aside
+    className={`
+      fixed inset-y-0 left-0 w-80 bg-white shadow-lg transform transition-transform z-50
+      ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      md:relative md:translate-x-0 md:flex md:flex-col
+    `}
+  >
+    <div className="p-4 border-b flex items-center justify-between">
+      <Button onClick={onNewSession} variant="secondary" className="flex-1 gap-2">
+        <PlusCircle className="h-4 w-4" />
+        New Chat
+      </Button>
+      <button
+        onClick={onClose}
+        className="md:hidden p-2 rounded-md hover:bg-gray-200 ml-2"
+        aria-label="Close sidebar"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    </div>
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-2">
           {sessions.map((session) => (
             <div
               key={session.id}
-              className={`group flex items-center gap-2 p-3 rounded-lg transition-colors ${
-                session.id === currentSession
-                  ? "bg-secondary/30"
-                  : "hover:bg-secondary/10"
-              }`}
+              className={`group flex items-center gap-2 p-3 rounded-lg transition-colors
+                ${session.id === currentSession ? "bg-secondary/30" : "hover:bg-secondary/10"}`}
             >
               <button
-                onClick={() => onSwitchSession(session.id)}
+                onClick={() => { onSwitchSession(session.id); onClose(); }}
                 className="flex-1 flex items-center gap-3 min-w-0 text-left"
               >
                 <MessageSquare className="h-4 w-4 flex-shrink-0 text-white" />
@@ -89,39 +98,22 @@ export default function ChatSidebar({
                   </div>
                 )}
               </button>
-              
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {editingId === session.id ? (
                   <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => saveEdit(session.id)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => saveEdit(session.id)}>
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={cancelEdit}
-                    >
+                    <Button variant="ghost" size="icon" onClick={cancelEdit}>
                       <X className="h-4 w-4" />
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => startEditing(session)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => startEditing(session)}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDeleteSession(session.id)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => onDeleteSession(session.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </>
@@ -131,6 +123,6 @@ export default function ChatSidebar({
           ))}
         </div>
       </ScrollArea>
-    </div>
+    </aside>
   );
 }

@@ -1,148 +1,168 @@
+// hooks/use-chat.ts
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { nanoid } from "nanoid";
 import { Message, ChatSession } from "@/lib/types";
 import { API_URL } from "@/lib/config";
 
+const STORAGE_KEY = "chatSessions";
+
 export function useChat() {
+  const didMount = useRef(false);
+
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSession, setCurrentSession] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load sessions from localStorage on mount
+  // 1) Load sessions from localStorage once on mount
   useEffect(() => {
-    const savedSessions = localStorage.getItem("chatSessions");
-    if (savedSessions) {
-      const parsed = JSON.parse(savedSessions);
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as ChatSession[];
       setSessions(parsed);
-      
-      // Set current session to most recent if none selected
-      if (!currentSession && parsed.length > 0) {
-        setCurrentSession(parsed[0].id);
-        setMessages(parsed[0].messages);
+      if (parsed.length) {
+        const first = parsed[0];
+        setCurrentSessionId(first.id);
+        setMessages(first.messages);
       }
     }
   }, []);
 
-  // Save sessions to localStorage whenever they change
+  // 2) Persist sessions whenever they change (skip first render)
   useEffect(() => {
-    localStorage.setItem("chatSessions", JSON.stringify(sessions));
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
 
-  const createNewSession = () => {
-    const newSession: ChatSession = {
+  // 3) Sync messages when switching sessions
+  useEffect(() => {
+    if (currentSessionId) {
+      const session = sessions.find((s) => s.id === currentSessionId);
+      setMessages(session ? session.messages : []);
+    }
+  }, [currentSessionId, sessions]);
+
+  // Upsert helper: put updated session at front
+  const upsertSession = useCallback((session: ChatSession) => {
+    setSessions((prev) => [session, ...prev.filter((s) => s.id !== session.id)]);
+  }, []);
+
+  // Create a new session (returns it for immediate use)
+  const createSession = useCallback((): ChatSession => {
+    const ns: ChatSession = {
       id: nanoid(),
       title: "New Chat",
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    setSessions(prev => [newSession, ...prev]);
-    setCurrentSession(newSession.id);
+    upsertSession(ns);
+    setCurrentSessionId(ns.id);
     setMessages([]);
-  };
+    return ns;
+  }, [upsertSession]);
 
-  const switchSession = (sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (session) {
-      setCurrentSession(sessionId);
-      setMessages(session.messages);
-    }
-  };
+  const createNewSession = useCallback(() => {
+    createSession();
+  }, [createSession]);
 
-  const deleteSession = (sessionId: string) => {
-    setSessions(prev => prev.filter(s => s.id !== sessionId));
-    if (currentSession === sessionId) {
-      const remaining = sessions.filter(s => s.id !== sessionId);
-      if (remaining.length > 0) {
-        switchSession(remaining[0].id);
-      } else {
-        setCurrentSession(null);
-        setMessages([]);
+  const switchSession = useCallback((id: string) => {
+    setCurrentSessionId(id);
+  }, []);
+
+  const deleteSession = useCallback(
+    (id: string) => {
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+      if (id === currentSessionId) {
+        const remaining = sessions.filter((s) => s.id !== id);
+        if (remaining.length) {
+          setCurrentSessionId(remaining[0].id);
+        } else {
+          setCurrentSessionId(null);
+          setMessages([]);
+        }
       }
-    }
-  };
+    },
+    [currentSessionId, sessions]
+  );
 
-  const updateSessionTitle = (sessionId: string, title: string) => {
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, title, updatedAt: Date.now() } : s
-    ));
-  };
+  const updateSessionTitle = useCallback(
+    (id: string, title: string) => {
+      const session = sessions.find((s) => s.id === id);
+      if (!session) return;
+      const updated = { ...session, title, updatedAt: Date.now() };
+      upsertSession(updated);
+    },
+    [sessions, upsertSession]
+  );
+
+  const handleSubmit = useCallback(
+    async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (!input.trim() || isLoading) return;
+
+      setError(null);
+      setIsLoading(true);
+
+      // Get or create session
+      let session = sessions.find((s) => s.id === currentSessionId);
+      if (!session) {
+        session = createSession();
+      }
+
+      // Add user message
+      const userMsg: Message = { role: "user", content: input.trim() };
+      const history = [...session.messages, userMsg];
+      setMessages(history);
+      setInput("");
+
+      try {
+        const res = await fetch(`${API_URL}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMsg.content, history }),
+        });
+        if (!res.ok) throw new Error(`API ${res.status}`);
+
+        const { response: aiContent } = await res.json();
+        const aiMsg: Message = { role: "assistant", content: aiContent };
+        const fullHistory = [...history, aiMsg];
+
+        // Update session
+        const updatedSession: ChatSession = {
+          ...session,
+          messages: fullHistory,
+          title: session.title === "New Chat" ? userMsg.content : session.title,
+          updatedAt: Date.now(),
+        };
+        upsertSession(updatedSession);
+        setMessages(fullHistory);
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "Failed to send");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [
+      input,
+      isLoading,
+      currentSessionId,
+      sessions,
+      createSession,
+      upsertSession,
+    ]
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!input.trim() || isLoading) return;
-    
-    // Create new session if none exists
-    if (!currentSession) {
-      createNewSession();
-    }
-    
-    setError(null);
-    
-    const userMessage: Message = {
-      role: "user",
-      content: input.trim(),
-    };
-    
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setIsLoading(true);
-    setInput("");
-    
-    try {
-      const response = await fetch(`${API_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history: messages,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      const aiMessage: Message = {
-        role: "assistant",
-        content: data.response,
-      };
-      
-      const newMessages = [...updatedMessages, aiMessage];
-      setMessages(newMessages);
-      
-      // Update session with new messages
-      setSessions(prev => prev.map(s => 
-        s.id === currentSession 
-          ? { 
-              ...s, 
-              messages: newMessages,
-              title: s.title === "New Chat" ? userMessage.content : s.title,
-              updatedAt: Date.now()
-            } 
-          : s
-      ));
-      
-    } catch (err) {
-      console.error("Error sending message:", err);
-      setError(err instanceof Error ? err.message : "Failed to send message");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return {
@@ -154,7 +174,7 @@ export function useChat() {
     isLoading,
     error,
     sessions,
-    currentSession,
+    currentSession: currentSessionId,
     createNewSession,
     switchSession,
     deleteSession,
