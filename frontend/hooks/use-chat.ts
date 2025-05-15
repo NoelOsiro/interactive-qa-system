@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { nanoid } from "nanoid";
 import { Message, ChatSession } from "@/lib/types";
+import { API_URL } from "@/lib/config";
 
 const STORAGE_KEY = "chatSessions";
 
@@ -118,7 +119,13 @@ export function useChat() {
       setInput("");
 
       try {
-        const res = await fetch(`/api/chat`, {
+        // Use environment variable for API URL
+        const apiUrl = API_URL;
+        if (!apiUrl) {
+          throw new Error("API_URL is not defined");
+        }
+
+        const res = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userMsg.content, history }),
