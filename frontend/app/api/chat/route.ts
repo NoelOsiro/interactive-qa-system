@@ -1,8 +1,7 @@
-// app/api/chat/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { ChatPayload, ChatResponse } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import { ChatPayload, ChatResponse } from "@/lib/types";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,18 +9,19 @@ export async function POST(request: NextRequest) {
     const apiUrl = process.env.NEXT_PUBLIC_FAST_API_URL;
 
     if (!apiUrl) {
-      throw new Error('NEXT_PUBLIC_FAST_API_URL is not defined');
+      throw new Error("NEXT_PUBLIC_FAST_API_URL is not defined");
     }
 
-    // FastAPI expects { query: string }
+    // Forward both query and history to FastAPI
     const fastApiRequest = {
       query: body.message,
+      history: body.history || [], // Ensure history is an array
     };
 
     const response = await fetch(`${apiUrl}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(fastApiRequest),
     });
@@ -32,16 +32,16 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    // Wrap response to match ChatResponse type
+    // Return the response in the expected format
     const result: ChatResponse = {
       response: data.response,
     };
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('API error:', error);
+    console.error("API error:", error);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: "Failed to process request" },
       { status: 500 }
     );
   }

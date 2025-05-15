@@ -1,10 +1,8 @@
-// hooks/use-chat.ts
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { nanoid } from "nanoid";
 import { Message, ChatSession } from "@/lib/types";
-
 
 const STORAGE_KEY = "chatSessions";
 
@@ -18,7 +16,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1) Load sessions from localStorage once on mount
+  // Load sessions from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -32,7 +30,7 @@ export function useChat() {
     }
   }, []);
 
-  // 2) Persist sessions whenever they change (skip first render)
+  // Persist sessions (skip first render)
   useEffect(() => {
     if (!didMount.current) {
       didMount.current = true;
@@ -41,7 +39,7 @@ export function useChat() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
 
-  // 3) Sync messages when switching sessions
+  // Sync messages when switching sessions
   useEffect(() => {
     if (currentSessionId) {
       const session = sessions.find((s) => s.id === currentSessionId);
@@ -49,12 +47,10 @@ export function useChat() {
     }
   }, [currentSessionId, sessions]);
 
-  // Upsert helper: put updated session at front
   const upsertSession = useCallback((session: ChatSession) => {
     setSessions((prev) => [session, ...prev.filter((s) => s.id !== session.id)]);
   }, []);
 
-  // Create a new session (returns it for immediate use)
   const createSession = useCallback((): ChatSession => {
     const ns: ChatSession = {
       id: nanoid(),
@@ -111,13 +107,11 @@ export function useChat() {
       setError(null);
       setIsLoading(true);
 
-      // Get or create session
       let session = sessions.find((s) => s.id === currentSessionId);
       if (!session) {
         session = createSession();
       }
 
-      // Add user message
       const userMsg: Message = { role: "user", content: input.trim() };
       const history = [...session.messages, userMsg];
       setMessages(history);
@@ -129,24 +123,23 @@ export function useChat() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userMsg.content, history }),
         });
-        if (!res.ok) throw new Error(`API ${res.status}`);
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
 
         const { response: aiContent } = await res.json();
         const aiMsg: Message = { role: "assistant", content: aiContent };
         const fullHistory = [...history, aiMsg];
 
-        // Update session
         const updatedSession: ChatSession = {
           ...session,
           messages: fullHistory,
-          title: session.title === "New Chat" ? userMsg.content : session.title,
+          title: session.title === "New Chat" ? userMsg.content.slice(0, 50) : session.title,
           updatedAt: Date.now(),
         };
         upsertSession(updatedSession);
         setMessages(fullHistory);
       } catch (err) {
         console.error(err);
-        setError(err instanceof Error ? err.message : "Failed to send");
+        setError(err instanceof Error ? err.message : "Failed to send message");
       } finally {
         setIsLoading(false);
       }
