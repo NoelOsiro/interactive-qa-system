@@ -38,7 +38,7 @@ A modern, responsive chat interface for interacting with AI language models.
 
 3. Create a `.env.local` file with the following variables:
    ```
-   NEXT_PUBLIC_API_URL=http://localhost:8000
+   NEXT_PUBLIC_FAST_API_URL=http://localhost:8000/api/ask
    ```
 
 4. Start the development server:
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
 ### Frontend (.env.local)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_FAST_API_URL=http://localhost:8000/api/ask
 ```
 
 ### Backend (.env)

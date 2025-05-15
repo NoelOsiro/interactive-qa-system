@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { nanoid } from "nanoid";
 import { Message, ChatSession } from "@/lib/types";
-import { API_URL } from "@/lib/config";
+
 
 const STORAGE_KEY = "chatSessions";
 
@@ -124,7 +124,7 @@ export function useChat() {
       setInput("");
 
       try {
-        const res = await fetch(`${API_URL}/chat`, {
+        const res = await fetch(`/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userMsg.content, history }),
