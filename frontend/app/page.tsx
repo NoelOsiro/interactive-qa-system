@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
+import { JSX, SVGProps } from 'react';
 
 export default function Home() {
   return (
@@ -51,7 +52,7 @@ const features = [
   {
     title: 'Intelligent Responses',
     description: 'Powered by advanced large language models to provide accurate and helpful answers to your questions.',
-    icon: function MessageSquare(props) {
+    icon: function MessageSquare(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
       return (
         <svg
           {...props}
@@ -73,7 +74,7 @@ const features = [
   {
     title: 'Real-time Chat',
     description: 'Experience fluid conversation with instant responses and a modern, intuitive interface.',
-    icon: function Zap(props) {
+    icon: function Zap(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
       return (
         <svg
           {...props}
@@ -95,7 +96,7 @@ const features = [
   {
     title: 'Message History',
     description: 'Keep track of your conversation history to reference past questions and answers.',
-    icon: function Clock(props) {
+    icon: function Clock(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
       return (
         <svg
           {...props}

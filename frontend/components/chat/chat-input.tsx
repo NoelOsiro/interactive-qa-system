@@ -50,35 +50,37 @@ export default function ChatInput({
   };
 
   return (
-    <div className="border-t border-border bg-background p-4">
-      <form 
-        onSubmit={onSubmit}
-        className="flex items-end gap-2 max-w-3xl mx-auto"
-      >
-        <div className="relative flex-1">
-          <Textarea
-            value={input}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            placeholder="Type your message..."
-            className="min-h-[52px] resize-none pr-12"
-            rows={rows}
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="absolute right-2 bottom-1.5"
-            disabled={!input.trim() || isLoading}
-          >
-            <SendIcon className="h-4 w-4" />
-            <span className="sr-only">Send message</span>
-          </Button>
-        </div>
-      </form>
-      <p className="text-xs text-muted-foreground text-center mt-2">
-        Powered by AI Language Models • Press Enter to send, Shift+Enter for new line
-      </p>
+    <div className="border-t border-border bg-background px-2 sm:px-3 md:px-4 py-3 sm:py-4">
+      <div className="w-full max-w-[90%] sm:max-w-[85%] md:max-w-[80%] mx-auto">
+        <form 
+          onSubmit={onSubmit}
+          className="flex items-end gap-2 w-full"
+        >
+          <div className="relative flex-1 w-full">
+            <Textarea
+              value={input}
+              onChange={onChange}
+              onKeyDown={onKeyDown}
+              placeholder="Type your message..."
+              className="min-h-[40px] sm:min-h-[52px] resize-none pr-10 sm:pr-12 text-sm sm:text-base w-full"
+              rows={rows}
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="absolute right-1.5 sm:right-2 bottom-1 sm:bottom-1.5 h-7 w-7 sm:h-8 sm:w-8"
+              disabled={!input.trim() || isLoading}
+            >
+              <SendIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="sr-only">Send message</span>
+            </Button>
+          </div>
+        </form>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Powered by AI Language Models • Press Enter to send, Shift+Enter for new line
+        </p>
+      </div>
     </div>
   );
 }

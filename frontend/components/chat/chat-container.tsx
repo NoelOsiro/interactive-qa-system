@@ -12,7 +12,6 @@ interface ChatContainerProps {
 export default function ChatContainer({ messages, isLoading }: ChatContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -20,36 +19,35 @@ export default function ChatContainer({ messages, isLoading }: ChatContainerProp
   }, [messages, isLoading]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="flex-1 overflow-y-auto p-4 scroll-smooth"
+    <div
+      ref={containerRef}
+      className="flex-1 flex flex-col space-y-2 overflow-y-auto px-3 py-3 scroll-smooth min-h-0"
+      role="log"
+      aria-live="polite"
     >
       {messages.length === 0 ? (
-        <div className="h-full flex flex-col items-center justify-center text-center p-8">
-          <div className="max-w-md space-y-4">
-            <h2 className="text-2xl font-bold">Welcome to AI Knowledge Assistant</h2>
-            <p className="text-muted-foreground">
-              Ask me anything and I'll do my best to provide a helpful response. Your conversation history will appear here.
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <div className="max-w-md space-y-3">
+            <h2 className="text-xl font-bold">Welcome to AI Knowledge Assistant</h2>
+            <p className="text-sm text-muted-foreground">
+              Ask me anything, and I&apos;ll provide a helpful response. Your conversation history will appear here.
             </p>
           </div>
         </div>
       ) : (
-        <div className="space-y-6 max-w-3xl mx-auto">
-          <AnimatePresence initial={false}>
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChatMessage message={message} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          
+        <AnimatePresence initial={false}>
+          {messages.map((message, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChatMessage message={message} />
+            </motion.div>
+          ))}
           {isLoading && <ChatSkeleton />}
-        </div>
+        </AnimatePresence>
       )}
     </div>
   );

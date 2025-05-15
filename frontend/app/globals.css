@@ -51,11 +51,16 @@
   * {
     @apply border-border;
   }
+  html, body {
+    @apply h-full min-h-screen;
+  }
   body {
     @apply bg-background text-foreground;
   }
 }
-
+.prose table, .prose pre {
+  overflow-x: auto;
+}
 .glass-morphism {
   @apply bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/10;
 }

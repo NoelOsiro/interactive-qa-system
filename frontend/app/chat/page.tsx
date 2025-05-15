@@ -27,9 +27,20 @@ export default function ChatPage() {
     updateSessionTitle,
   } = useChat();
 
-  // Sidebar toggle state
+  // Sidebar toggle state - closed on mobile, open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Handle window resize to manage sidebar state
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth >= 768);
+    };
+    handleResize(); // Set initial state
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Show error toast
   useEffect(() => {
     if (error) {
       toast({
@@ -41,8 +52,8 @@ export default function ChatPage() {
   }, [error, toast]);
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-      {/* Sidebar Drawer */}
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}
         currentSession={currentSession}
@@ -55,11 +66,9 @@ export default function ChatPage() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:ml-80">
+      <div className="flex-1 flex flex-col min-w-0">
         <ChatHeader onToggleSidebar={() => setSidebarOpen((v) => !v)} />
-
-        {/* Chat history + input */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <ChatContainer messages={messages} isLoading={isLoading} />
           <ChatInput
             input={input}

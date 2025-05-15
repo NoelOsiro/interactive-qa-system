@@ -24,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${lato.variable} ${openSans.variable} font-sans`}>{children}</body>
+    <html lang="en" className="h-full min-h-screen">
+      <body className={`${lato.variable} ${openSans.variable} font-sans min-h-screen h-full`}>{children}</body>
     </html>
   );
 }

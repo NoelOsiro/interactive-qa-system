@@ -47,82 +47,98 @@ export default function ChatSidebar({
   };
 
   return (
-    <aside
-    className={`
-      fixed inset-y-0 left-0 w-80 bg-white shadow-lg transform transition-transform z-50
-      ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      md:relative md:translate-x-0 md:flex md:flex-col
-    `}
-  >
-    <div className="p-4 border-b flex items-center justify-between">
-      <Button onClick={onNewSession} variant="secondary" className="flex-1 gap-2">
-        <PlusCircle className="h-4 w-4" />
-        New Chat
-      </Button>
-      <button
-        onClick={onClose}
-        className="md:hidden p-2 rounded-md hover:bg-gray-200 ml-2"
-        aria-label="Close sidebar"
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`
+          fixed inset-y-0 left-0 w-60 sidebar-glass border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out z-50
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:relative md:translate-x-0 md:w-64
+        `}
       >
-        <X className="h-5 w-5" />
-      </button>
-    </div>
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-2">
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              className={`group flex items-center gap-2 p-3 rounded-lg transition-colors
-                ${session.id === currentSession ? "bg-secondary/30" : "hover:bg-secondary/10"}`}
-            >
-              <button
-                onClick={() => { onSwitchSession(session.id); onClose(); }}
-                className="flex-1 flex items-center gap-3 min-w-0 text-left"
-              >
-                <MessageSquare className="h-4 w-4 flex-shrink-0 text-white" />
-                {editingId === session.id ? (
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="flex-1 bg-transparent border-none focus:outline-none"
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <div className="flex-1 truncate">
-                    <div className="font-medium truncate">{session.title}</div>
-                    <div className="text-xs text-muted-background">
-                      {format(session.updatedAt, "MMM d, yyyy")}
-                    </div>
-                  </div>
-                )}
-              </button>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {editingId === session.id ? (
-                  <>
-                    <Button variant="ghost" size="icon" onClick={() => saveEdit(session.id)}>
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={cancelEdit}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="icon" onClick={() => startEditing(session)}>
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDeleteSession(session.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="p-3 border-b flex items-center justify-between">
+          <Button onClick={onNewSession} variant="secondary" className="flex-1 gap-2 text-sm">
+            <PlusCircle className="h-4 w-4" />
+            New Chat
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="md:hidden"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
-      </ScrollArea>
-    </aside>
+        <ScrollArea className="flex-1 p-3">
+          <div className="space-y-1">
+            {sessions.map((session) => (
+              <div
+                key={session.id}
+                className={`group flex items-center gap-2 p-2 rounded-lg transition-colors
+                  ${session.id === currentSession ? "bg-secondary/20" : "hover:bg-secondary/10"}`}
+              >
+                <button
+                  onClick={() => {
+                    onSwitchSession(session.id);
+                    onClose();
+                  }}
+                  className="flex-1 flex items-center gap-2 min-w-0 text-left"
+                >
+                  <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                  {editingId === session.id ? (
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="flex-1 bg-transparent border border-border rounded px-2 py-1 text-sm"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <div className="flex-1 truncate">
+                      <div className="font-medium truncate text-sm">{session.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {format(session.updatedAt, "MMM d, yyyy")}
+                      </div>
+                    </div>
+                  )}
+                </button>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {editingId === session.id ? (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => saveEdit(session.id)}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={cancelEdit}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => startEditing(session)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => onDeleteSession(session.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </aside>
+    </>
   );
 }
