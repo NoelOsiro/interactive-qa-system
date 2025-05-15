@@ -1,138 +1,179 @@
-Below is the corrected and properly formatted Markdown for your guide to submitting the Interactive Q&A System Backend. I’ve fixed indentation, ensured consistent formatting, and organized the content for clarity while maintaining all the details you provided. The Markdown is ready to be used in your README.md or submission documentation.
-markdown
-# Interactive Q&A System Backend
+# 🚀 Interactive Q\&A System
 
-A FastAPI backend for an interactive Q&A system with Gemini LLM integration.
+An AI-powered, full-stack **Interactive Q\&A System** that allows users to ask questions and receive context-aware, markdown-formatted responses in real-time. Built with a responsive Next.js frontend and a FastAPI backend integrated with the Gemini LLM (free tier).
 
-## Setup
+## 🎯 Assessment Objective
 
-1. **Clone the repository**:
+This project fulfills the pre-screening assessment to demonstrate proficiency in:
+
+* **Full-Stack Development**: Modern technologies (Next.js, FastAPI, TailwindCSS).
+* **AI/LLM Integration**: Seamless integration with Gemini LLM.
+* **User-Friendly Interfaces**: Responsive, visually appealing UI/UX.
+* **Clean Code**: Well-organized, maintainable code with proper error handling.
+* **API Integrations**: Secure and structured API endpoints.
+* **Decision-Making**: Effective use case selection and prompt engineering.
+
+**Use Case**: A general-purpose Q\&A system where users can ask any question (e.g., "What documents do I need to travel from Kenya to Ireland?") and receive structured, markdown-formatted responses with relevant details, leveraging conversation history for context.
+
+## ✨ Features
+
+### 🖥️ Frontend
+
+* Responsive web interface with TailwindCSS.
+* Intuitive text area for user queries.
+* Real-time, markdown-rendered responses (code snippets, lists, headings).
+* Sidebar for viewing and managing query history (bonus feature).
+* Mobile-friendly design.
+
+### ⚙️ Backend API
+
+* **FastAPI** endpoints (`/api/ask`) for secure query processing.
+* Context-aware responses using conversation history.
+* Swagger UI documentation at `/docs`.
+* Environment variable management for API keys and URLs.
+
+### 🤖 LLM Integration
+
+* Gemini 1.5 Flash (free tier) for accurate, technical responses.
+* Prompt engineering optimized for programming and general questions.
+
+### 🛠️ UX Enhancements
+
+* Input validation and API error handling.
+* Loading indicators and user-friendly error messages.
+
+## 🧰 Technical Stack
+
+* **Frontend**: Next.js (App Router), TypeScript, TailwindCSS, Lucide-React.
+* **Backend**: Python, FastAPI, Pydantic, Google Generative AI SDK.
+* **LLM**: Gemini 1.5 Flash.
+* **Tools**: Nanoid, Tenacity (retry logic), Python-Dotenv.
+
+## 🚀 Setup
+
+### Prerequisites
+
+* Node.js (v18+)
+* Python (v3.9+)
+* Git
+* Gemini API Key (Google Cloud Console)
+
+## 🚢 Deployment (Optional)
+
+### Backend (Vercel)
+
+* Runtime: Python 3.9+
+* Build: `pip install -r requirements.txt`
+* Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+* Env: `GEMINI_API_KEY`
+* https://backend-eight-liard-70.vercel.app/api/ask
+
+### Frontend (Vercel)
+
+* Connect GitHub repo
+* Env: `NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/ask`
+* Deploy
+* https://interactive-qa-system.vercel.app/chat
+
+
+### 🔧 Backend Setup
+
+1. Clone repository:
+
    ```bash
-   git clone <your-repo-url>
-   cd backend
-Create a virtual environment:
-bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-Install dependencies:
-bash
-pip install -r requirements.txt
-Set up environment variables:
-Copy .env.example to .env:
-bash
-cp .env.example .env
-Add your Gemini API key to .env:
-GEMINI_API_KEY=your-gemini-api-key
-Run the server:
-bash
-uvicorn main:app --reload
-Access the API:
-Swagger UI: http://localhost:8000/docs
-Test endpoint: POST /api/ask with body {"query": "Your question"}
-Prompt Engineering
-The LLM prompt is designed to ensure clear, concise, and formatted responses:
-You are a helpful AI assistant specializing in programming and technical questions. 
-Provide a clear, concise, and accurate answer to the following question. 
-Use markdown formatting for code snippets, lists, and headings if appropriate.
+   git clone https://github.com/NoelOsiro/interactive-qa-system.git
+   cd interactive-qa-system/backend
+   ```
+2. Create virtual environment and activate:
 
-Question: {query}
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
 
-Answer:
-This prompt instructs the LLM to:
-Focus on programming/technical topics.
-Use markdown for readability (e.g., code blocks, lists).
-Keep answers concise and accurate.
-Notes
-Gemini API Key: Ensure your API key is valid and within free-tier limits. If you hit rate limits, you may need to add retry logic in llm_service.py.
-Prompt Engineering: The prompt is tailored for technical Q&A, matching the frontend’s focus (e.g., programming questions). You can adjust it for other use cases.
-Mock Responses: If you’re unable to use the Gemini API, you can temporarily modify llm_service.py for mock responses:
-python
-async def get_llm_response(query: str) -> str:
-    return f"Mock response to: {query}"
-Frontend Integration: Your chat.js page is already set up to call http://localhost:8000/api/ask. Ensure the frontend handles the response and timestamp fields correctly.
-Error Handling: The backend validates input and handles API errors, meeting the assessment’s requirements.
-Troubleshooting
-API Key Issues
-If you get a 500 error about the API key, double-check .env and ensure the key is valid.
-Rate Limits
-If Gemini returns a 429 error, add a delay or retry mechanism:
-python
-from tenacity import retry, stop_after_attempt, wait_fixed
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Copy and configure `.env`:
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-async def get_llm_response(query: str) -> str:
-    # Existing code
-Install tenacity:
-bash
-pip install tenacity
-echo "tenacity" >> requirements.txt
-CORS Issues
-If the frontend can’t reach the backend, add CORS middleware to main.py:
-python
-from fastapi.middleware.cors import CORSMiddleware
+   ```bash
+   cp .env.example .env
+   ```
 
-app = FastAPI(
-    title="Interactive Q&A System API",
-    description="API for an interactive Q&A system with Gemini LLM integration",
-    version="1.0.0"
-)
+   ```env
+   GEMINI_API_KEY=your-gemini-api-key
+   ```
+5. Run the backend server:
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
 
----
+### 🖥️ Frontend Setup
 
-### Changes Made
-- **Fixed Indentation**: Ensured consistent Markdown indentation (e.g., 2 spaces for lists, 4 spaces for code blocks).
-- **Corrected Code Blocks**: Properly formatted Bash and Python code with triple backticks (```).
-- **Organized Sections**: Grouped related content (e.g., all troubleshooting under a dedicated header).
-- **Improved Clarity**: Added proper headings and removed redundant text (e.g., incomplete sentences).
-- **Maintained Content**: Kept all your instructions, including setup steps, prompt engineering, notes, and troubleshooting.
+1. Navigate to frontend:
 
----
+   ```bash
+   cd ../frontend
+   ```
+2. Install dependencies:
 
-### Submission Guide
-To submit your project as per the assessment requirements:
+   ```bash
+   npm install
+   ```
+3. Copy and configure `.env.local`:
 
-1. **Push to GitHub**:
-   - Ensure your repository contains:
-     - **Backend Code**: `main.py`, `routes/ask.py`, `services/llm_service.py`, `requirements.txt`, `.env.example`.
-     - **Documentation**: `README.md` with the above Markdown.
-     - **Prompt Details**: Included in `README.md` under “Prompt Engineering.”
-   - Commit and push:
-     ```bash
-     git add .
-     git commit -m "Complete backend for Interactive Q&A System with Gemini"
-     git push origin main
-     ```
+   ```bash
+   cp .env.example .env.local
+   ```
 
-2. **Verify Repository**:
-   - Check that your GitHub repository is public (or accessible to the reviewers).
-   - Confirm all files are present and `.env` is excluded (via `.gitignore`).
+   ```env
+   NEXT_PUBLIC_FAST_API_URL=http://localhost:8000/api/ask
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/chat
+   ```
+4. Run the frontend:
 
-3. **Optional Deployment** (Bonus):
-   - Deploy the backend to a platform like Render or Heroku.
-   - Update `README.md` with the deployed URL (e.g., `https://your-backend.onrender.com/docs`).
-   - Example for Render:
-     - Create a new Web Service on Render.
-     - Set the runtime to Python.
-     - Add the build command: `pip install -r requirements.txt`.
-     - Set the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`.
-     - Add `GEMINI_API_KEY` as an environment variable in Render’s dashboard.
+   ```bash
+   npm run dev
+   ```
+5. Open in browser: [http://localhost:3000](http://localhost:3000)
 
-4. **Submit the Link**:
-   - Provide the GitHub repository URL (e.g., `https://github.com/your-username/interactive-qa-system`) in your assessment submission.
-   - If deployed, include the deployed URL.
+## 🧠 Prompt Engineering
+
+```text
+You are a helpful AI assistant specializing in programming and technical questions.
+Provide clear, concise, and accurate answers, using markdown for formatting.
+Include conversation history for context.
+```
+
+## 🔍 Example Interaction
+
+**User**: "What documents do I need to travel from Kenya to Ireland?"
+
+**Assistant**:
+
+```markdown
+To travel from Kenya to Ireland, you need:
+
+- **Passport**: Valid for at least 6 months beyond departure.
+- **Visa**: Short-stay (C) visa via Irish Embassy or VFS Global.
+- **Additional Documents**:
+  - Proof of accommodation.
+  - Return flight tickets.
+  - Bank statements (sufficient funds).
+
+> Check for updates on [gov.ie](https://www.gov.ie) or the Irish Embassy in Nairobi.
+```
+
+
+## 📂 Repository & Submission
+
+* **GitHub**: [https://github.com/NoelOsiro/interactive-qa-system](https://github.com/NoelOsiro/interactive-qa-system)
+* **Structure**: `backend/` (FastAPI) & `frontend/` (Next.js)
+* **README**: Includes setup, prompt docs, env templates
+* **Ignored**: `.env`, `.env.local`
 
 ---
 
-### Notes
-- **Gemini Integration**: The backend is fully configured for Gemini, as per your preference. If you need help testing the API or frontend integration, let me know.
-- **Frontend**: Ensure your `chat.js` page handles the `response` and `timestamp` fields from the `/api/ask` endpoint.
-- **Time Allocation**: The assessment allows 3 days, so prioritize testing the full flow (frontend + backend) before submission.
+*Developed by Noel Osiro, passionate about AI-driven applications.*
